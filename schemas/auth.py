@@ -7,6 +7,12 @@ class UserRegister(BaseModel):
     name: str
     email: EmailStr
     password: str
+    # Optional address at registration time
+    street: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = "India"
 
 
 class UserLogin(BaseModel):

@@ -39,8 +39,24 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
             password_hash=password_hash,
             role="user"
         )
-        
-        return {
+
+        # Save address if provided during registration
+        address = None
+        try:
+            address = UserService.upsert_default_address(
+                db,
+                user_id=new_user.id,
+                street=payload.street,
+                city=payload.city,
+                state=payload.state,
+                postal_code=payload.postal_code,
+                country=payload.country,
+            )
+        except ValueError as addr_err:
+            # Address fields were partially provided — inform the user
+            raise HTTPException(status_code=400, detail=f"Address error: {addr_err}")
+
+        response = {
             "success": True,
             "message": "User registered successfully",
             "user": {
@@ -50,6 +66,17 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
                 "role": new_user.role
             }
         }
+        if address:
+            response["address"] = {
+                "id": address.id,
+                "street": address.street,
+                "city": address.city,
+                "state": address.state,
+                "postal_code": address.postal_code,
+                "country": address.country,
+                "is_default": address.is_default,
+            }
+        return response
     except HTTPException as e:
         raise e
     except Exception as e:

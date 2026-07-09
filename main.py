@@ -28,17 +28,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from config.database import Base, engine
+from config.database import Base, engine, SessionLocal
 from controllers import user_controller, product_controller, auth_controller
 
-# Create database tables
+# Import ALL models before create_all so every table is registered
+from models.user import User
+from models.address import Address
+from models.product import Product
+from services.auth_service import AuthService
+
+# Create database tables (addresses table will now be included)
 Base.metadata.create_all(bind=engine)
 
 # Seed default admin user if none exists
-from config.database import SessionLocal
-from models.user import User
-from services.auth_service import AuthService
-
 db = SessionLocal()
 try:
     admin_exists = db.query(User).filter(User.role == "admin").first()
